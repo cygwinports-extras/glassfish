@@ -1,0 +1,7 @@
+category: Java
+requires: java-servlet-api
+external-source: glassfish
+sdesc: "GlassFish JavaServer Pages API"
+ldesc: "GlassFish is an open source, production-ready, Java 
+EE-compatible application server. GlassFish version 2 provides a small 
+footprint, fully-featured implementation of Java EE 5."

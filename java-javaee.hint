@@ -1,0 +1,7 @@
+category: Java
+requires: java-jaxrpc java-mx4j
+external-source: glassfish
+sdesc: "GlassFish Java EE 5 API"
+ldesc: "GlassFish is an open source, production-ready, Java 
+EE-compatible application server. GlassFish version 2 provides a small 
+footprint, fully-featured implementation of Java EE 5."

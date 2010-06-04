@@ -1,0 +1,65 @@
+JAVA_CLASSPATH="jaxrpc.jar:mx4j-jmx.jar:mx4j-remote.jar" #:xalan.jar"
+inherit ant
+
+DESCRIPTION="Glassfish J2EE application server"
+HOMEPAGE="https://glassfish.dev.java.net/"
+SRC_URI="http://dlc.sun.com.edgesuite.net/javaee5/v${PV%_*}_branch/promoted/source/${PN}-v${PV/_/-}-src.zip"
+SRC_DIR=.
+
+# PATCH_URI="2.1.1-xalan.patch"
+
+PKG_NAMES="${PN}"
+
+for api in activation javaee jmac-api jsp-api mail servlet-api
+do
+	PKG_NAMES+=" java-${api}"
+	declare java_${api/-/_}_CONTENTS="${JAVA_DIR#/}/${api}.jar ${JAVADOC_DIR#/}/${api}/"
+done
+
+src_compile() {
+	lndirs
+
+	# this builds everything, but classpath is missing some com.sun packages
+	# needed for building common-util, required for most appserv-*
+	#	cd ${B}/glassfish/bootstrap
+	#	cygant build
+
+	cd ${B}/glassfish
+
+	for d in activation mail deployment-api transaction-api servlet-api \
+	         ejb-api persistence-api connector-api management-api appserv-api \
+	         jms-api jmac-api jacc-api # appserv-jstl
+	do
+		pushd ${d}
+		cygant all
+		popd
+	done
+
+	for d in activation mail jmac-api
+	do
+		pushd ${d}
+		cygant docs
+		popd
+	done
+
+	cygjavadoc -d ../publish/glassfish/docs \
+		-sourcepath activation/src/java:mail/src/java:deployment-api/src/java:transaction-api/src/java:servlet-api/src/jakarta-servletapi-5/jsr154/src/share:servlet-api/src/jsr245/src/share:ejb-api/src/share/classes:persistence-api/src/java:connector-api/src/java:management-api:jms-api/src/java:jmac-api/src/java:jacc-api/src/java \
+		-subpackages javax
+}
+
+src_install() {
+	cd ${B}/publish/glassfish/lib
+	dojar activation.jar javaee.jar jmac-api.jar mail.jar
+	newjavadoc ../docs javaee
+
+	cd ${B}/glassfish
+	newjavadoc activation/build/release/docs/javadocs activation
+	newjavadoc mail/build/release/docs/javadocs mail
+	newjavadoc jmac-api/build/docs/javadocs jmac-api
+
+	cd ${B}/glassfish/servlet-api/src
+	dojar jakarta-servletapi-5/jsr154/dist/lib/servlet-api.jar
+	dojar jsr245/dist/lib/jsp-api.jar
+	newjavadoc jakarta-servletapi-5/jsr154/build/docs/api servlet-api
+	newjavadoc jsr245/build/docs/api jsp-api
+}
